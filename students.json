@@ -1,0 +1,27 @@
+[
+    {
+        "id": 1111,
+        "first_name": "Or",
+        "last_name": "Hod",
+        "email": "or.mordechay.hod@e.braude.ac.il",
+        "courses": [
+            "web",
+            "cloud"
+        ],
+        "link": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "favourite_show": "Alice And Bob The Show"
+    },
+    {
+        "id": 2222,
+        "first_name": "Gilad",
+        "last_name": "Boudman",
+        "email": "gilad.boudman@e.braude.ac.il",
+        "courses": [
+            "web",
+            "cloud",
+            "daud daud"
+        ],
+        "link": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "favourite_show": "Bob And Alice The Show"
+    }
+]
