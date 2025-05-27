@@ -1,0 +1,604 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Cloud-Course-Group-Phoenix/Project-Pheonix/blob/Daniel_Sasha_tirgul/tirgul10\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# **Step 1 - Installation**"
+      ],
+      "metadata": {
+        "id": "LLRBniZYlTxv"
+      }
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "id": "zQ2Lb-vbbNiY"
+      },
+      "outputs": [],
+      "source": [
+        "# Install Java\n",
+        "!apt-get install openjdk-8-jdk-headless -qq > /dev/null\n",
+        "\n",
+        "# Download the latest Apache Spark version\n",
+        "!wget -q https://archive.apache.org/dist/spark/spark-3.4.1/spark-3.4.1-bin-hadoop3.tgz\n",
+        "!tar xf spark-3.4.1-bin-hadoop3.tgz\n",
+        "\n",
+        "# Install findspark to connect Python with Spark\n",
+        "!pip install -q findspark\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# **Step 2 - Environment Setup**"
+      ],
+      "metadata": {
+        "id": "ygI7tV_VmwkX"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Import the os module to interact with the operating system\n",
+        "import os\n",
+        "# Import findspark to locate the Spark installation\n",
+        "import findspark\n",
+        "\n",
+        "# Set the environment variable for Java home directory (required for Spark to run)\n",
+        "os.environ[\"JAVA_HOME\"] = \"/usr/lib/jvm/java-8-openjdk-amd64\"\n",
+        "# Set the environment variable for Spark home directory to the downloaded Spark path\n",
+        "os.environ[\"SPARK_HOME\"] = \"/content/spark-3.4.1-bin-hadoop3\"\n",
+        "\n",
+        "# Initialize findspark to make pyspark importable within Python\n",
+        "findspark.init()\n"
+      ],
+      "metadata": {
+        "id": "JyD2EWzBikq7"
+      },
+      "execution_count": 2,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# **Step 3 - Create SparkSession**"
+      ],
+      "metadata": {
+        "id": "Fq4LRLhlnxSR"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Import SparkSession class from PySpark SQL module\n",
+        "from pyspark.sql import SparkSession\n",
+        "\n",
+        "# Create a SparkSession object, which is the entry point to use Spark functionality\n",
+        "  # Set the name of the Spark application to be \"Big Data Example\"\n",
+        "  # Create a new SparkSession or return an existing one\n",
+        "spark = SparkSession.builder.appName(\"Big Data Example\").getOrCreate()"
+      ],
+      "metadata": {
+        "id": "od3pxJrQklz1"
+      },
+      "execution_count": 3,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# **Step 4 – Continue with DataFrame operations**"
+      ],
+      "metadata": {
+        "id": "pC-aYahaqIGG"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Define a list of tuples, each containing a name and a price\n",
+        "data = [(\"Tal\", 120), (\"Uri\", 90), (\"Dina\", 150)]\n",
+        "# Define the column names for the DataFrame\n",
+        "columns = [\"name\", \"price\"]\n",
+        "# Create a DataFrame from the data and column names using the SparkSession\n",
+        "df = spark.createDataFrame(data, columns)\n",
+        "# Filter the DataFrame to include only rows where the price is greater than 100\n",
+        "df.filter(df[\"price\"] > 100).show()\n"
+      ],
+      "metadata": {
+        "id": "G8ItNHuCkv3l",
+        "outputId": "000dc12f-41f7-41ec-c977-4b6ceb3d08c5",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+----+-----+\n",
+            "|name|price|\n",
+            "+----+-----+\n",
+            "| Tal|  120|\n",
+            "|Dina|  150|\n",
+            "+----+-----+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# **Real Dataset Example of Amazon Reviews**"
+      ],
+      "metadata": {
+        "id": "TCuBmqZiuQXu"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import kagglehub\n",
+        "\n",
+        "# Download latest version\n",
+        "path = kagglehub.dataset_download(\"datafiniti/consumer-reviews-of-amazon-products\")\n",
+        "\n",
+        "print(\"Path to dataset files:\", path)"
+      ],
+      "metadata": {
+        "id": "9zq3nIYZsMG1",
+        "outputId": "0bd9968c-a97b-46c8-8d3d-d7594a52743f",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Downloading from https://www.kaggle.com/api/v1/datasets/download/datafiniti/consumer-reviews-of-amazon-products?dataset_version_number=5...\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "100%|██████████| 16.3M/16.3M [00:00<00:00, 185MB/s]"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Extracting files...\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Path to dataset files: /root/.cache/kagglehub/datasets/datafiniti/consumer-reviews-of-amazon-products/versions/5\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df = spark.read.csv(\"/root/.cache/kagglehub/datasets/datafiniti/consumer-reviews-of-amazon-products/versions/5\", header=True, inferSchema=True)\n",
+        "df.printSchema()\n",
+        "df.show(50)"
+      ],
+      "metadata": {
+        "id": "aocO_c6ttMs8",
+        "outputId": "5c4010bd-8a28-4c83-b4ab-a068c46839af",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 7,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "root\n",
+            " |-- id: string (nullable = true)\n",
+            " |-- dateAdded: string (nullable = true)\n",
+            " |-- dateUpdated: string (nullable = true)\n",
+            " |-- name: string (nullable = true)\n",
+            " |-- asins: string (nullable = true)\n",
+            " |-- brand: string (nullable = true)\n",
+            " |-- categories: string (nullable = true)\n",
+            " |-- primaryCategories: string (nullable = true)\n",
+            " |-- imageURLs: string (nullable = true)\n",
+            " |-- keys: string (nullable = true)\n",
+            " |-- manufacturer: string (nullable = true)\n",
+            " |-- manufacturerNumber: string (nullable = true)\n",
+            " |-- reviews.date: string (nullable = true)\n",
+            " |-- reviews.dateSeen: string (nullable = true)\n",
+            " |-- reviews.didPurchase: string (nullable = true)\n",
+            " |-- reviews.doRecommend: string (nullable = true)\n",
+            " |-- reviews.id: string (nullable = true)\n",
+            " |-- reviews.numHelpful: string (nullable = true)\n",
+            " |-- reviews.rating: string (nullable = true)\n",
+            " |-- reviews.sourceURLs: string (nullable = true)\n",
+            " |-- reviews.text: string (nullable = true)\n",
+            " |-- reviews.title: string (nullable = true)\n",
+            " |-- reviews.username: string (nullable = true)\n",
+            " |-- sourceURLs: string (nullable = true)\n",
+            "\n",
+            "+--------------------+--------------------+--------------------+--------------------+--------------------+------------+--------------------+-----------------+--------------------+--------------------+------------+------------------+--------------------+--------------------+-------------------+-------------------+----------+------------------+--------------+--------------------+--------------------+--------------------+--------------------+--------------------+\n",
+            "|                  id|           dateAdded|         dateUpdated|                name|               asins|       brand|          categories|primaryCategories|           imageURLs|                keys|manufacturer|manufacturerNumber|        reviews.date|    reviews.dateSeen|reviews.didPurchase|reviews.doRecommend|reviews.id|reviews.numHelpful|reviews.rating|  reviews.sourceURLs|        reviews.text|       reviews.title|    reviews.username|          sourceURLs|\n",
+            "+--------------------+--------------------+--------------------+--------------------+--------------------+------------+--------------------+-----------------+--------------------+--------------------+------------+------------------+--------------------+--------------------+-------------------+-------------------+----------+------------------+--------------+--------------------+--------------------+--------------------+--------------------+--------------------+\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-03-02T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             3|https://www.amazo...|I order 3 of them...|... 3 of them and...|          Byger yang|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-08-31T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|Bulk is always th...|... always the le...|                ByMG|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-12-06T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Well they are not...|... are not Durac...|    BySharon Lambert|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-03-28T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Seem to work as w...|... as well as na...|       Bymark sexson|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-04-22T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|These batteries a...|... batteries are...|             Bylinda|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-02-17T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Bought a lot of b...|... batteries for...|    ByPainter Marlow|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-04-17T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|ive not had any p...|... batteries hav...|   ByAmazon Customer|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-04-16T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Well if you are l...|... batteries tha...|   ByLynn Pendegrass|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-04-07T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             3|https://www.amazo...|These do not hold...|... do not hold t...|              ByK.R.|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-05-24T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|AmazonBasics AA A...|... done well by ...|        BySilverLane|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-11-21T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|I find amazon bas...|... find amazon b...|            ByTXcust|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-02-26T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             3|https://www.amazo...|When I first star...|... first started...|          Byd'Isigny|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-01-05T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Use it for my fis...|... for my fish t...|   ByFabiola Sarabia|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-11-15T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|just got em so I ...|... got em so I c...|             ByDavyo|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-09-05T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|we have many thin...|... have many thi...|  ByBrenda jefferson|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-05-21T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Thankful that I w...|... I was able to...|   ByAmazon Customer|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-03-07T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             1|https://www.amazo...|I don't know if I...|... know if I wou...|             ByLaura|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-08-13T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             2|https://www.amazo...|In my opinion the...|... last anywhere...|    ByFlip Flop Life|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-06-18T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|They don't last a...|... last as long ...|              ByAdam|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-03-08T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             3|https://www.amazo...|Bought these batt...|... my Christmas ...|   ByAmazon Customer|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-05-07T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|This my second or...|... my second ord...|Byfredrick m. gjedde|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-09-19T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|This was my secon...|... my second pur...|              ByLisa|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-09-18T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|They last as long...|... my Xbox one c...|           ByJessica|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-07-18T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|they seemed to no...|... not last as l...|        Byskiperbear|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-05-21T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             1|https://www.amazo...|These do not last...|... not last long...|        ByDiane ault|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-03-17T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|have not used yet...|... not used yet ...|   ByAmazon Customer|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-02-11T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|These Amazon batt...|... of batteries ...|   ByRoman E Ramirez|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-07-23T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|We've ordered the...|... ordered these...|  ByJoshua and Nikki|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-03-27T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|HAVE NOT HAD CHAN...|... THEM BUT HOPE...|     ByIris Castillo|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-07-25T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             3|https://www.amazo...|these were under ...|... there to fit ...|             Bymerle|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-01-18T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|I use these batte...|... these batteri...|   ByAmazon Customer|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2015-12-25T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Very convenient t...|... to have a box...|          ByNiqueFit|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-01-19T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Not much to say a...|... to say about ...|              ByDave|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-05-04T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|They seem to work...|... to work okay ...|            ByBIGGUY|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-01-09T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|I use them for my...|... use them for ...|   ByAmazon Customer|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-07-14T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Seem to hold up a...|... well as any n...|            ByRonski|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2015-08-01T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Works just as wel...|... well as every...|          ByCorey L.|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-07-26T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             3|https://www.amazo...|Just got them so ...|... wont kno for ...|   ByAmazon Customer|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-08-14T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|These last as wel...|       1/2 the price|           ByTWEagle|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-01-15T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             1|https://www.amazo...|These batteries a...|1/4 Capacity Batt...|             ByKeith|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-04-20T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|3rd purchase of t...|10 years and stro...|           ByJeff T.|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2015-10-17T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|I am 100 satisfie...|     100 satisfied..|               ByGPN|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-01-17T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             3|https://www.amazo...|I put these batte...|17 less battery l...|           ByS. Nash|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2017-06-28T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             1|https://www.amazo...|First time I boug...|1st purchase was ...|ByAlaska Moutian Man|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-11-14T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|Seem to work very...|        2 THUMBS UP.|           ByCharlie|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-11-23T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             1|https://www.amazo...|These batteries d...|    2 weeks at best.|   ByMark A. Hougham|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-05-11T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|I buy AAA and AA ...|       2-year Review|         ByTravis C.|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-08-23T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             1|https://www.amazo...|Date on the back ...|24 year old Bon B...|   ByAmazon Customer|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2016-02-18T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             4|https://www.amazo...|GOT THE 48 PACK, ...|    48 PACK BLISS!!!|       Bykaren oakes|https://www.barco...|\n",
+            "|AVpgNzjwLJeJML43Kpxn|2015-10-30T08:59:32Z|2019-04-25T09:08:16Z|AmazonBasics AAA ...|B00QWO9P0O,B00LH3...|Amazonbasics|AA,AAA,Health,Ele...|  Health & Beauty|https://images-na...|amazonbasics/hl00...|AmazonBasics|         HL-002619|2015-10-09T00:00:...|2017-08-28T00:00:00Z|               null|               null|      null|              null|             5|https://www.amazo...|The 48 packs are ...|48 pack is cheape...|          ByShirtGuy|https://www.barco...|\n",
+            "+--------------------+--------------------+--------------------+--------------------+--------------------+------------+--------------------+-----------------+--------------------+--------------------+------------+------------------+--------------------+--------------------+-------------------+-------------------+----------+------------------+--------------+--------------------+--------------------+--------------------+--------------------+--------------------+\n",
+            "only showing top 50 rows\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Filter positive reviews\n",
+        "positive_reviews = df.filter(df[\"`reviews.rating`\"] >= 4)\n",
+        "\n",
+        "# Show examples of positive reviews\n",
+        "positive_reviews.select(\"`reviews.text`\", \"`reviews.rating`\").show(5, truncate=False)\n"
+      ],
+      "metadata": {
+        "id": "Zp36dXCDv0qe",
+        "outputId": "efbca813-a191-4cde-e2af-fc56a59980c8",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 8,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+\n",
+            "|reviews.text                                                                                                                                                                                                                                                              |reviews.rating|\n",
+            "+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+\n",
+            "|Bulk is always the less expensive way to go for products like these                                                                                                                                                                                                       |4             |\n",
+            "|Well they are not Duracell but for the price i am happy.                                                                                                                                                                                                                  |5             |\n",
+            "|Seem to work as well as name brand batteries at a much better price                                                                                                                                                                                                       |5             |\n",
+            "|These batteries are very long lasting the price is great.                                                                                                                                                                                                                 |5             |\n",
+            "|Bought a lot of batteries for Christmas and the AmazonBasics Cell have been good. I haven't noticed a difference between the brand name batteries and the Amazon Basic brand. Just a lot easier to purchase and have arrive at the house and have on hand. Will buy again.|5             |\n",
+            "+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+\n",
+            "only showing top 5 rows\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# Count how many reviews there are per numerical rating\n",
+        "df.filter(df[\"`reviews.rating`\"] >= 0).groupBy(\"`reviews.rating`\").count().orderBy(\"count\", ascending=False).show()"
+      ],
+      "metadata": {
+        "id": "YJrTNhx3xQIM",
+        "outputId": "c9c57349-1890-4f8e-b3d1-6a242a45bde4",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "+--------------+-----+\n",
+            "|reviews.rating|count|\n",
+            "+--------------+-----+\n",
+            "|             5|22687|\n",
+            "|             4| 6520|\n",
+            "|             3| 1372|\n",
+            "|             1| 1045|\n",
+            "|             0|  704|\n",
+            "|             2|  670|\n",
+            "|            16|    1|\n",
+            "|            44|    1|\n",
+            "|             8|    1|\n",
+            "|             6|    1|\n",
+            "|            97|    1|\n",
+            "|             9|    1|\n",
+            "|            49|    1|\n",
+            "|            12|    1|\n",
+            "|            13|    1|\n",
+            "+--------------+-----+\n",
+            "\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# **Map Reduce Example**"
+      ],
+      "metadata": {
+        "id": "Ha8KCoTu1YNZ"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "logs = [\n",
+        "    \"192.168.1.10 - - [10/May/2025:13:00] GET /index.html\",\n",
+        "    \"172.16.0.5 - - [10/May/2025:13:01] GET /contact.html\",\n",
+        "    \"192.168.1.10 - - [10/May/2025:13:02] GET /products.html\",\n",
+        "    \"10.0.0.1 - - [10/May/2025:13:02] GET /index.html\",\n",
+        "    \"192.168.1.10 - - [10/May/2025:13:03] GET /about.html\"\n",
+        "]"
+      ],
+      "metadata": {
+        "id": "qRmN3d9Y1zWo"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from pyspark.sql import SparkSession\n",
+        "\n",
+        "# Create Spark session\n",
+        "spark = SparkSession.builder \\\n",
+        "    .appName(\"IP Visit Count\") \\\n",
+        "    .getOrCreate()\n",
+        "\n",
+        "# Create RDD (Resilient Distributed Dataset) from the list of logs\n",
+        "rdd = spark.sparkContext.parallelize(logs)\n",
+        "\n",
+        "# Map step: extract the IP and map each one to (IP, 1)\n",
+        "ip_counts = rdd.map(lambda line: (line.split()[0], 1))\n",
+        "\n",
+        "# Reduce step: sum all counts per IP\n",
+        "result = ip_counts.reduceByKey(lambda a, b: a + b)\n",
+        "\n",
+        "# Collect the results to the driver and print\n",
+        "for ip, count in result.collect():\n",
+        "    print(f\"{ip} visited {count} times\")\n",
+        "\n",
+        "# Stop the Spark session\n",
+        "spark.stop()\n"
+      ],
+      "metadata": {
+        "id": "1tZmC43F1cvM"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "add = lambda x, y: x + y\n",
+        "print(add(2, 3))"
+      ],
+      "metadata": {
+        "id": "InlK--YA8u6P"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from pyspark.sql import SparkSession\n",
+        "\n",
+        "# Start SparkSession\n",
+        "spark = SparkSession.builder.appName(\"RDD Example\").getOrCreate()\n",
+        "\n",
+        "rdd = spark.sparkContext.parallelize([(\"apple\", 1), (\"banana\", 1), (\"apple\", 1)])\n",
+        "result = rdd.reduceByKey(lambda a, b: a + b)\n",
+        "print(result.collect())\n"
+      ],
+      "metadata": {
+        "id": "aObIICIQBn40"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# **Word Count with MapReduce in PySpark:**"
+      ],
+      "metadata": {
+        "id": "Ck56-tkYEiMK"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from pyspark.sql import SparkSession\n",
+        "\n",
+        "# Start Spark session\n",
+        "spark = SparkSession.builder \\\n",
+        "    .appName(\"Big Data Word Count with MapReduce\") \\\n",
+        "    .getOrCreate()\n",
+        "\n",
+        "# Load text data (simulating a large dataset with parallelize)\n",
+        "text = [\n",
+        "    \"Big data is transforming the world\",\n",
+        "    \"Apache Spark is fast and powerful\",\n",
+        "    \"Big data requires scalable tools\",\n",
+        "    \"Spark is designed for big data processing\"\n",
+        "]\n",
+        "\n",
+        "# Create RDD from text lines\n",
+        "rdd = spark.sparkContext.parallelize(text)\n",
+        "\n",
+        "# MapReduce steps:\n",
+        "# Step 1: Split each line into words\n",
+        "words = rdd.flatMap(lambda line: line.lower().split())\n",
+        "\n",
+        "# Step 2: Map each word to (word, 1)\n",
+        "word_pairs = words.map(lambda word: (word, 1))\n",
+        "\n",
+        "# Step 3: Reduce by key (sum counts for each word)\n",
+        "word_counts = word_pairs.reduceByKey(lambda a, b: a + b)\n",
+        "\n",
+        "# Collect and display the results\n",
+        "for word, count in word_counts.collect():\n",
+        "    print(f\"{word}: {count}\")\n"
+      ],
+      "metadata": {
+        "id": "frcktURHEupZ"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# **Map Reduce analysis Big Data**"
+      ],
+      "metadata": {
+        "id": "qEnpAL5xGf8L"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import kagglehub\n",
+        "\n",
+        "# Download latest version\n",
+        "path = kagglehub.dataset_download(\"datafiniti/consumer-reviews-of-amazon-products\")\n",
+        "\n",
+        "print(\"Path to dataset files:\", path)"
+      ],
+      "metadata": {
+        "id": "nK8WWER4E0Ib"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from pyspark.sql.functions import col\n",
+        "from pyspark.sql.functions import isnull # Import the isnull function\n",
+        "\n",
+        "df = spark.read.csv(\"/kaggle/input/consumer-reviews-of-amazon-products\", header=True, inferSchema=True)\n",
+        "# Select the review column and filter out rows where 'reviews.text' is null\n",
+        "df_clean = df.select(col(\"`reviews.text`\").alias(\"review\")).filter(col(\"review\").isNotNull())\n",
+        "# Create RDD from text lines\n",
+        "rdd = df_clean.select(\"review\").rdd.map(lambda row: row[\"review\"])\n",
+        "# MapReduce steps:\n",
+        "# Step 1: Split each line into words\n",
+        "words = rdd.flatMap(lambda line: line.lower().split())\n",
+        "\n",
+        "# Step 2: Map each word to (word, 1)\n",
+        "word_pairs = words.map(lambda word: (word, 1))\n",
+        "\n",
+        "# Step 3: Reduce by key (sum counts for each word)\n",
+        "word_counts = word_pairs.reduceByKey(lambda a, b: a + b)\n",
+        "\n",
+        "# Collect and display the results\n",
+        "for word, count in word_counts.collect():\n",
+        "    print(f\"{word}: {count}\")"
+      ],
+      "metadata": {
+        "id": "ysZg57c3LrDJ"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
